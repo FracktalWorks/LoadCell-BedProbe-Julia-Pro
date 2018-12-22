@@ -17,10 +17,10 @@ float val = 0 ;
 bool resetFlag = false;
 bool dir, prevDir;
 
-#define THRESHOLD 15
+#define LOWERTHRESHOLD 20
+#define UPPERTHRESHOLD 35
 #define DIR_PIN A1
 #define TARE_PIN 8
-// #define LED_PIN 13
 #define TRIGGER_PIN 7
 #define SETTLE_TIME 500
 
@@ -89,50 +89,60 @@ void setup()
 
 }
 
-void loop() {
-  //update() should be called at least as often as HX711 sample rate; >10Hz@10SPS, >80Hz@80SPS
-  //longer delay in scetch will reduce effective sample rate (be carefull with delay() in loop)
-  // if (!digitalRead(TARE_PIN)) //External trigger to Tare sensor
-  //   reset();
+void loop()
+{
 
    if (aproachingNozzle())
     reset();
-  if (zDirection())
-  {
-    if (aproachingNozzle())
-      reset();
+    if (zDirection())
+    {
+      if (aproachingNozzle())
+        reset();
 
-    #ifdef DEBUG
-      Serial.print(20);
-      Serial.print(" ");
-    #endif
+      #ifdef DEBUG
+        Serial.print(20);
+        Serial.print(" ");
+      #endif
 
-    LoadCell.update();
-    Serial.print(LoadCell.getData());
+      LoadCell.update();
+      Serial.print(LoadCell.getData());
 
-    val = LoadCell.getData();
+      val = LoadCell.getData();
 
-    if (val >= THRESHOLD)
+
+      if (val >= LOWERTHRESHOLD && val < UPPERTHRESHOLD)
       {
         digitalWrite(TRIGGER_PIN,HIGH);
         #ifdef DEBUG
         Serial.print(" ");
-        Serial.print(THRESHOLD);
+        Serial.print(LOWERTHRESHOLD);
         #endif
       }
 
+      if (val >= UPPERTHRESHOLD)
+        {
+          digitalWrite(TRIGGER_PIN,HIGH);
+          delay (50);
+          digitalWrite(TRIGGER_PIN,LOW);
+          delay(50);
+          #ifdef DEBUG
+          Serial.print(" ");
+          Serial.print(LOWERTHRESHOLD);
+          #endif
+        }
+
+      else
+        {
+          digitalWrite(TRIGGER_PIN,LOW);
+          #ifdef DEBUG
+          Serial.print(" ");
+          Serial.print(0);
+          #endif
+        }
+      #ifdef DEBUG
+        Serial.println();
+      #endif
+    }
     else
-      {
-        digitalWrite(TRIGGER_PIN,LOW);
-        #ifdef DEBUG
-        Serial.print(" ");
-        Serial.print(0);
-        #endif
-      }
-    #ifdef DEBUG
-      Serial.println();
-    #endif
-  }
-  else
-    digitalWrite(TRIGGER_PIN,LOW);
+      digitalWrite(TRIGGER_PIN,LOW);
 }
