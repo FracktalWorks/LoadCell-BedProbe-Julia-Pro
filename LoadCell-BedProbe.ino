@@ -1,46 +1,54 @@
-//-------------------------------------------------------------------------------------
-// HX711_ADC.h
-// Arduino master library for HX711 24-Bit Analog-to-Digital Converter for Weigh Scales
-// Olav Kallhovd sept2017
-// Tested with      : HX711 asian module on channel A and YZC-133 3kg load cell
-// Tested with MCU  : Arduino Nano
-//-------------------------------------------------------------------------------------
-// This is an example sketch on how to use this library
-// Settling time (number of samples) and data filtering can be adjusted in the HX711_ADC.h file
-
 #include <HX711_ADC.h>
 
+/**
+ * Port register manipulation
+ * https://www.arduino.cc/en/Hacking/Atmega168Hardware
+ * 
+ * Bank D - D7-D0
+ *      B - D13-D8
+ *      C - A5-A0
+ * 
+ * DDRx     - IO direction (0 = input, 1 = output)
+ * PORTx    - output (0 = LOW, 1 = HIGH)
+ * PINx     - input (0 = LOW, 1 = HIGH)
+*/
+
+//  HX711 pins
 #define PIN_DOUT    9
 #define PIN_CLK     10
 
+//  MKS pins
 #define PIN_DIR     A1
 #define PIN_TARE    8
+
+//  Probe PCB
 #define PIN_TRIGGER 7
 
-//HX711 constructor (dout pin, sck pin)
-HX711_ADC LoadCell(9, 10);
+//  Calibration constants
+#define LOWER_THRESHOLD     20
+#define UPPER_THRESHOLD     35
+#define SETTLE_TIME         500
 
-float val = 0 ;
-bool resetFlag = false;
-bool dir, prevDir;
-
-#define LOWERTHRESHOLD 20
-#define UPPERTHRESHOLD 35
-#define DIR_PIN A1
-#define TARE_PIN 8
-#define TRIGGER_PIN 7
-#define SETTLE_TIME 500
-
+//  Comment out to remove debug functionality
 #define DEBUG 1
+
+//HX711 constructor (dout pin, sck pin)
+HX711_ADC LoadCell(PIN_DOUT, PIN_CLK);
+
+float mCellOutput = 0 ;
+bool mFlagReset = false;
+bool mDirZ, mDirZLast;
 
 
 void reset() {
     // digitalWrite(LED_PIN,HIGH);
-    digitalWrite(TRIGGER_PIN,LOW);
+    digitalWrite(PIN_TRIGGER, LOW);
     delay(SETTLE_TIME);
+
     LoadCell.begin();
     LoadCell.start(4000);
     LoadCell.setCalFactor(700); // user set calibration factor (float)
+
     #ifdef DEBUG
         Serial.print(35);
         Serial.print(" ");
@@ -48,22 +56,19 @@ void reset() {
 }
 
 bool zDirection() {
-    if (digitalRead(DIR_PIN))
-        return true;    //  Moving towards from bed
+    if (digitalRead(PIN_DIR))
+        return true;    //  Moving towards bed
     else
         return false;   //  moving away from bed
 }
 
 //  function to check if bed changed direction towards nozzle
-bool aproachingNozzle() {
-    dir = digitalRead(DIR_PIN);
-    if ((dir == HIGH) && (prevDir == LOW)) {
-        prevDir=dir;
-        return true;
-    }  else{
-        prevDir=dir;
-        return false;
-    }
+bool isBedClosingIn() {
+    boolean temp;
+    mDirZ = digitalRead(PIN_DIR);
+    temp = (mDirZ != mDirZLast && mDirZ == HIGH);
+    mDirZLast = mDirZ;
+    return temp;
 }
 
 void setup() {
@@ -80,19 +85,19 @@ void setup() {
         Serial.println("Startup + tare is complete");
     #endif
 
-    pinMode(TRIGGER_PIN, OUTPUT);
-    digitalWrite(TRIGGER_PIN, LOW);
-    //pinMode(TARE_PIN,INPUT_PULLUP);
-    pinMode(DIR_PIN, INPUT);
-    prevDir = digitalRead(DIR_PIN);
+    pinMode(PIN_TRIGGER, OUTPUT);
+    digitalWrite(PIN_TRIGGER, LOW);
+    //pinMode(PIN_TARE,INPUT_PULLUP);
+    pinMode(PIN_DIR, INPUT);
+    mDirZLast = digitalRead(PIN_DIR);
 }
 
-void loop(){
-    if (aproachingNozzle())
+void loop() {
+    if (isBedClosingIn())
         reset();
 
     if (zDirection()) {
-        if (aproachingNozzle())
+        if (isBedClosingIn())
             reset();
 
         #ifdef DEBUG
@@ -103,28 +108,28 @@ void loop(){
         LoadCell.update();
         Serial.print(LoadCell.getData());
 
-        val = LoadCell.getData();
+        mCellOutput = LoadCell.getData();
 
 
-        if (val >= LOWERTHRESHOLD && val < UPPERTHRESHOLD) {
-            digitalWrite(TRIGGER_PIN, HIGH);
+        if (mCellOutput >= LOWER_THRESHOLD && mCellOutput < UPPER_THRESHOLD) {
+            digitalWrite(PIN_TRIGGER, HIGH);
             #ifdef DEBUG
                 Serial.print(" ");
-                Serial.print(LOWERTHRESHOLD);
+                Serial.print(LOWER_THRESHOLD);
             #endif
         }
 
-        if (val >= UPPERTHRESHOLD) {
-            digitalWrite(TRIGGER_PIN, HIGH);
+        if (mCellOutput >= UPPER_THRESHOLD) {
+            digitalWrite(PIN_TRIGGER, HIGH);
             delay (50);
-            digitalWrite(TRIGGER_PIN, LOW);
+            digitalWrite(PIN_TRIGGER, LOW);
             delay(50);
             #ifdef DEBUG
                 Serial.print(" ");
-                Serial.print(LOWERTHRESHOLD);
+                Serial.print(LOWER_THRESHOLD);
             #endif
         } else {
-            digitalWrite(TRIGGER_PIN, LOW);
+            digitalWrite(PIN_TRIGGER, LOW);
             #ifdef DEBUG
                 Serial.print(" ");
                 Serial.print(0);
@@ -134,6 +139,6 @@ void loop(){
             Serial.println();
         #endif
     } else {
-        digitalWrite(TRIGGER_PIN, LOW);
+        digitalWrite(PIN_TRIGGER, LOW);
     }
 }
