@@ -23,13 +23,16 @@ bool dir, prevDir;
 #define TARE_PIN 8
 #define TRIGGER_PIN 7
 #define SETTLE_TIME 500
+#define LED_PIN 6
 
 #define DEBUG 1
 
 
 void reset()
 {
-  // digitalWrite(LED_PIN,HIGH);
+  #ifdef LED_PIN
+    digitalWrite(LED_PIN,LOW);
+  #endif
   digitalWrite(TRIGGER_PIN,LOW);
   delay(SETTLE_TIME);
   LoadCell.begin();
@@ -83,7 +86,10 @@ void setup()
   #endif
   pinMode(TRIGGER_PIN,OUTPUT);
   digitalWrite(TRIGGER_PIN,LOW);
-  //pinMode(TARE_PIN,INPUT_PULLUP);
+  #ifdef LED_PIN
+    pinMode(LED_PIN,OUTPUT);
+    digitalWrite(LED_PIN,LOW);
+  #endif
   pinMode(DIR_PIN,INPUT);
   prevDir = digitalRead(DIR_PIN);
 
@@ -113,17 +119,26 @@ void loop()
       if (val >= LOWERTHRESHOLD && val < UPPERTHRESHOLD)
       {
         digitalWrite(TRIGGER_PIN,HIGH);
+        #ifdef LED_PIN
+          digitalWrite(LED_PIN,HIGH);
+        #endif
         #ifdef DEBUG
-        Serial.print(" ");
-        Serial.print(LOWERTHRESHOLD);
+          Serial.print(" ");
+          Serial.print(LOWERTHRESHOLD);
         #endif
       }
 
       if (val >= UPPERTHRESHOLD)
         {
           digitalWrite(TRIGGER_PIN,HIGH);
+          #ifdef LED_PIN
+            digitalWrite(LED_PIN,HIGH);
+          #endif
           delay (50);
           digitalWrite(TRIGGER_PIN,LOW);
+          #ifdef LED_PIN
+            digitalWrite(LED_PIN,LOW);
+          #endif
           delay(50);
           #ifdef DEBUG
           Serial.print(" ");
@@ -145,4 +160,7 @@ void loop()
     }
     else
       digitalWrite(TRIGGER_PIN,LOW);
+      #ifdef LED_PIN
+        digitalWrite(LED_PIN,LOW);
+      #endif
 }
