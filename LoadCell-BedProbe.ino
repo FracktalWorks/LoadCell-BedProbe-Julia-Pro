@@ -23,12 +23,13 @@ bool dir, prevDir;
 #define TARE_PIN 8
 #define TRIGGER_PIN 7
 #define SETTLE_TIME 500
-#define LED_PIN 6
+//#define LED_PIN 6
+#define INVERT_Z_DIR false  //false if Z_DIR is HIGH when moving towards bed.
 
 #define DEBUG 1
 
 
-void reset()
+void tareLoadCell()
 {
   #ifdef LED_PIN
     digitalWrite(LED_PIN,LOW);
@@ -45,26 +46,47 @@ void reset()
 
 }
 
-bool zDirection()
+bool isMovingTowardBed()
 {
-  if (digitalRead(DIR_PIN))
-  {
-    return true; //Moving towards from bed
-  }
-  else
-  {
-    return false; //moving away from bed
+#if INVERT_Z_DIR == true
+    if (digitalRead(DIR_PIN))
+    {
+
+      return false; //Moving towards from bed
+    }
+    else
+    {
+      return true; //moving away from bed
+#else
+   if (digitalRead(DIR_PIN))
+    {
+
+      return true; //Moving towards from bed
+    }
+    else
+    {
+      return false; //moving away from bed
+#endif
   }
 }
 
-bool aproachingNozzle() //function to check if bed changed direction towards nozzle
+bool isChangedDirectionTowardBed() //function to check if bed changed direction towards nozzle
 {
   dir = digitalRead(DIR_PIN);
-  if ((dir == HIGH) && (prevDir == LOW))
-    {
-      prevDir=dir;
-      return true;
-    }
+  #if INVERT_Z_DIR == true
+    if ((dir == LOW) && (prevDir == HIGH))
+      {
+        prevDir=dir;
+        return true;
+      }
+  #else
+    if ((dir == HIGH) && (prevDir == LOW))
+      {
+        prevDir=dir;
+        return true;
+      }
+  #endif
+
   else
   {
     prevDir=dir;
@@ -98,12 +120,12 @@ void setup()
 void loop()
 {
 
-   if (aproachingNozzle())
-    reset();
-    if (zDirection())
+   if (isChangedDirectionTowardBed())
+      tareLoadCell();
+    if (isMovingTowardBed())
     {
-      if (aproachingNozzle())
-        reset();
+      if (isChangedDirectionTowardBed())
+        tareLoadCell();
 
       #ifdef DEBUG
         Serial.print(20);
@@ -149,6 +171,9 @@ void loop()
       else
         {
           digitalWrite(TRIGGER_PIN,LOW);
+          #ifdef LED_PIN
+            digitalWrite(LED_PIN,LOW);
+          #endif
           #ifdef DEBUG
           Serial.print(" ");
           Serial.print(0);
