@@ -1,6 +1,6 @@
 # loadCellProbe
 
-## Arduino Nano Code for loadcell automatic bed leveling for Julia Pro series of 3D Printers with used cantilivered corriage
+## Arduino Nano Code for loadcell automatic bed leveling for Julia Pro series of 3D Printers which uses cantilivered carriage design
 
 ### Usage:
 1. Set INVERT_Z_DIR so select in which Z Direction the loadcell amp should be giving output
