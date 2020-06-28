@@ -28,8 +28,7 @@ bool dir, prevDir;
 #define SETTLE_TIME 500
 #define LED_PIN 6
 #define INVERT_Z_DIR false  //false if Z_DIR is HIGH when moving towards bed.
-
-#define DEBUG 1
+#define DEBUG 1 //switch serial output
 
 //-------------------------------------------------------------------------------------
 // TARE's the loadcell value and resets all outputs
