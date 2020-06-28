@@ -16,6 +16,9 @@ HX711_ADC LoadCell(9, 10);
 float val = 0 ;
 bool resetFlag = false;
 bool dir, prevDir;
+//-------------------------------------------------------------------------------------
+//Settings
+//-------------------------------------------------------------------------------------
 
 #define LOWERTHRESHOLD 20
 #define UPPERTHRESHOLD 35
@@ -23,12 +26,14 @@ bool dir, prevDir;
 #define TARE_PIN 8
 #define TRIGGER_PIN 7
 #define SETTLE_TIME 500
-//#define LED_PIN 6
+#define LED_PIN 6
 #define INVERT_Z_DIR false  //false if Z_DIR is HIGH when moving towards bed.
 
 #define DEBUG 1
 
-
+//-------------------------------------------------------------------------------------
+// TARE's the loadcell value and resets all outputs
+//-------------------------------------------------------------------------------------
 void tareLoadCell()
 {
   #ifdef LED_PIN
@@ -45,32 +50,36 @@ void tareLoadCell()
   #endif
 
 }
-
+//-------------------------------------------------------------------------------------
+// Function that returns if the bed is moving towards wht nozzle ot not
+//-------------------------------------------------------------------------------------
 bool isMovingTowardBed()
 {
-#if INVERT_Z_DIR == true
-    if (digitalRead(DIR_PIN))
-    {
+  #if INVERT_Z_DIR == true
+      if (digitalRead(DIR_PIN))
+      {
 
-      return false; //Moving towards from bed
-    }
-    else
-    {
-      return true; //moving away from bed
-#else
-   if (digitalRead(DIR_PIN))
-    {
+        return false; //Moving towards from bed
+      }
+      else
+      {
+        return true; //moving away from bed
+  #else
+     if (digitalRead(DIR_PIN))
+      {
 
-      return true; //Moving towards from bed
+        return true; //Moving towards from bed
+      }
+      else
+      {
+        return false; //moving away from bed
+  #endif
     }
-    else
-    {
-      return false; //moving away from bed
-#endif
-  }
 }
-
-bool isChangedDirectionTowardBed() //function to check if bed changed direction towards nozzle
+//-------------------------------------------------------------------------------------
+// Function to check if bed just changed direction towards nozzle
+//-------------------------------------------------------------------------------------
+bool isChangedDirectionTowardBed() //
 {
   dir = digitalRead(DIR_PIN);
   #if INVERT_Z_DIR == true
@@ -93,7 +102,9 @@ bool isChangedDirectionTowardBed() //function to check if bed changed direction 
     return false;
   }
 }
-
+//-------------------------------------------------------------------------------------
+// Setup fucntion
+//-------------------------------------------------------------------------------------
 void setup()
 {
   #ifdef DEBUG
@@ -117,6 +128,9 @@ void setup()
 
 }
 
+//-------------------------------------------------------------------------------------
+// Main Loop
+//-------------------------------------------------------------------------------------
 void loop()
 {
 
