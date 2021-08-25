@@ -158,8 +158,8 @@ void loop()
 
       if (val >= LOWERTHRESHOLD && val < UPPERTHRESHOLD)
       {
-        count+=1;
-        if (count >4){
+        read_count+=1;
+        if (read_count >4){
         digitalWrite(TRIGGER_PIN,HIGH);
         #ifdef LED_PIN
           digitalWrite(LED_PIN,HIGH);
@@ -200,7 +200,7 @@ void loop()
           Serial.print(" ");
           Serial.print(0);
           #endif
-          count = 0;
+          read_count = 0;
         }
       #ifdef DEBUG
         Serial.println();
@@ -208,7 +208,7 @@ void loop()
     }
     else
       digitalWrite(TRIGGER_PIN,LOW);
-    count =0;
+    read_count =0;
       #ifdef LED_PIN
         digitalWrite(LED_PIN,LOW);
       #endif
