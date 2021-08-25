@@ -172,7 +172,7 @@ void loop()
 
       }
 
-      if (val >= UPPERTHRESHOLD)
+      else if (val >= UPPERTHRESHOLD)
         {
           digitalWrite(TRIGGER_PIN,HIGH);
           #ifdef LED_PIN
@@ -189,6 +189,8 @@ void loop()
           Serial.print(LOWERTHRESHOLD);
           #endif
         }
+      else if (val < -200)
+        tareLoadCell();
 
       else
         {
