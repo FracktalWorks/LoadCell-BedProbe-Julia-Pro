@@ -1,4 +1,3 @@
-
 //-------------------------------------------------------------------------------------
 // HX711_ADC.h
 // Arduino master library for HX711 24-Bit Analog-to-Digital Converter for Weigh Scales
@@ -20,7 +19,6 @@ HX711_ADC LoadCell(9, 10);
 float val = 0 ;
 bool resetFlag = false;
 bool dir, prevDir;
-int read_count = 0; //to prevent random spikes on the output
 //-------------------------------------------------------------------------------------
 //Settings
 //-------------------------------------------------------------------------------------
@@ -158,8 +156,6 @@ void loop()
 
       if (val >= LOWERTHRESHOLD && val < UPPERTHRESHOLD)
       {
-        read_count+=1;
-        if (read_count >4){
         digitalWrite(TRIGGER_PIN,HIGH);
         #ifdef LED_PIN
           digitalWrite(LED_PIN,HIGH);
@@ -168,11 +164,9 @@ void loop()
           Serial.print(" ");
           Serial.print(LOWERTHRESHOLD);
         #endif
-        }
-
       }
 
-      else if (val >= UPPERTHRESHOLD)
+      if (val >= UPPERTHRESHOLD)
         {
           digitalWrite(TRIGGER_PIN,HIGH);
           #ifdef LED_PIN
@@ -189,8 +183,6 @@ void loop()
           Serial.print(LOWERTHRESHOLD);
           #endif
         }
-      else if (val < -200)
-        tareLoadCell();
 
       else
         {
@@ -202,7 +194,6 @@ void loop()
           Serial.print(" ");
           Serial.print(0);
           #endif
-          read_count = 0;
         }
       #ifdef DEBUG
         Serial.println();
@@ -210,7 +201,6 @@ void loop()
     }
     else
       digitalWrite(TRIGGER_PIN,LOW);
-    read_count =0;
       #ifdef LED_PIN
         digitalWrite(LED_PIN,LOW);
       #endif
