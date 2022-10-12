@@ -30,7 +30,7 @@ bool dir, prevDir;
 #define TRIGGER_PIN 7
 #define SETTLE_TIME 500
 #define LED_PIN 6
-#define INVERT_Z_DIR false  //false if Z_DIR is HIGH when moving towards bed.
+#define INVERT_Z_DIR true  //false if Z_DIR is HIGH when moving towards bed. In Volterra it is false since motors are mounted on Top, In pro it is true since motors are mounted at bottom.
 #define DEBUG 1 //switch serial output
 
 //-------------------------------------------------------------------------------------
@@ -38,18 +38,18 @@ bool dir, prevDir;
 //-------------------------------------------------------------------------------------
 void tareLoadCell()
 {
-  #ifdef LED_PIN
-    digitalWrite(LED_PIN,LOW);
-  #endif
-  digitalWrite(TRIGGER_PIN,LOW);
+#ifdef LED_PIN
+  digitalWrite(LED_PIN, LOW);
+#endif
+  digitalWrite(TRIGGER_PIN, LOW);
   delay(SETTLE_TIME);
   LoadCell.begin();
   LoadCell.start(4000);
   LoadCell.setCalFactor(700); // user set calibration factor (float)
-  #ifdef DEBUG
-    Serial.print(35);
-    Serial.print(" ");
-  #endif
+#ifdef DEBUG
+  Serial.print(35);
+  Serial.print(" ");
+#endif
 
 }
 //-------------------------------------------------------------------------------------
@@ -57,26 +57,26 @@ void tareLoadCell()
 //-------------------------------------------------------------------------------------
 bool isMovingTowardBed()
 {
-  #if INVERT_Z_DIR == true
-      if (digitalRead(DIR_PIN))
-      {
+#if INVERT_Z_DIR == true
+  if (digitalRead(DIR_PIN))
+  {
 
-        return false; //Moving towards from bed
-      }
-      else
-      {
-        return true; //moving away from bed
-  #else
-     if (digitalRead(DIR_PIN))
-      {
+    return false; //Moving towards from bed
+  }
+  else
+  {
+    return true; //moving away from bed
+#else
+  if (digitalRead(DIR_PIN))
+  {
 
-        return true; //Moving towards from bed
-      }
-      else
-      {
-        return false; //moving away from bed
-  #endif
-    }
+    return true; //Moving towards from bed
+  }
+  else
+  {
+    return false; //moving away from bed
+#endif
+  }
 }
 //-------------------------------------------------------------------------------------
 // Function to check if bed just changed direction towards nozzle
@@ -84,23 +84,23 @@ bool isMovingTowardBed()
 bool isChangedDirectionTowardBed() //
 {
   dir = digitalRead(DIR_PIN);
-  #if INVERT_Z_DIR == true
-    if ((dir == LOW) && (prevDir == HIGH))
-      {
-        prevDir=dir;
-        return true;
-      }
-  #else
-    if ((dir == HIGH) && (prevDir == LOW))
-      {
-        prevDir=dir;
-        return true;
-      }
-  #endif
+#if INVERT_Z_DIR == true
+  if ((dir == LOW) && (prevDir == HIGH))
+  {
+    prevDir = dir;
+    return true;
+  }
+#else
+  if ((dir == HIGH) && (prevDir == LOW))
+  {
+    prevDir = dir;
+    return true;
+  }
+#endif
 
   else
   {
-    prevDir=dir;
+    prevDir = dir;
     return false;
   }
 }
@@ -109,23 +109,24 @@ bool isChangedDirectionTowardBed() //
 //-------------------------------------------------------------------------------------
 void setup()
 {
-  #ifdef DEBUG
-    Serial.begin(9600);
-    Serial.println("Wait...");
-  #endif
+#ifdef DEBUG
+  Serial.begin(57600);
+  Serial.println("Wait...");
+#endif
   LoadCell.begin();
   LoadCell.start(2000);
   LoadCell.setCalFactor(700.25); // user set calibration factor (float)
-  #ifdef DEBUG
+#ifdef DEBUG
   Serial.println("Startup + tare is complete");
-  #endif
-  pinMode(TRIGGER_PIN,OUTPUT);
-  digitalWrite(TRIGGER_PIN,LOW);
-  #ifdef LED_PIN
-    pinMode(LED_PIN,OUTPUT);
-    digitalWrite(LED_PIN,LOW);
-  #endif
-  pinMode(DIR_PIN,INPUT);
+#endif
+  pinMode(TRIGGER_PIN, OUTPUT);
+  digitalWrite(TRIGGER_PIN, LOW);
+#ifdef LED_PIN
+  pinMode(LED_PIN, OUTPUT);
+  digitalWrite(LED_PIN, LOW);
+#endif
+  pinMode(DIR_PIN, INPUT);
+  digitalWrite(DIR_PIN, HIGH);
   prevDir = digitalRead(DIR_PIN);
 
 }
@@ -136,72 +137,77 @@ void setup()
 void loop()
 {
 
-   if (isChangedDirectionTowardBed())
+  if (isChangedDirectionTowardBed())
+    tareLoadCell();
+  if (isMovingTowardBed())
+  {
+    if (isChangedDirectionTowardBed())
       tareLoadCell();
-    if (isMovingTowardBed())
-    {
-      if (isChangedDirectionTowardBed())
-        tareLoadCell();
 
-      #ifdef DEBUG
-        Serial.print(20);
-        Serial.print(" ");
-      #endif
 
-      LoadCell.update();
-      Serial.print(LoadCell.getData());
 
+    if (LoadCell.update()) {
+
+
+#ifdef DEBUG
+      Serial.print(20);
+      Serial.print(" ");
+#endif
       val = LoadCell.getData();
+      Serial.print(val);
+      Serial.print(" ");
+
 
 
       if (val >= LOWERTHRESHOLD && val < UPPERTHRESHOLD)
       {
-        digitalWrite(TRIGGER_PIN,HIGH);
-        #ifdef LED_PIN
-          digitalWrite(LED_PIN,HIGH);
-        #endif
-        #ifdef DEBUG
-          Serial.print(" ");
-          Serial.print(LOWERTHRESHOLD);
-        #endif
+        digitalWrite(TRIGGER_PIN, HIGH);
+#ifdef LED_PIN
+        digitalWrite(LED_PIN, HIGH);
+#endif
+#ifdef DEBUG
+        Serial.print(" ");
+        Serial.print(LOWERTHRESHOLD);
+#endif
       }
 
       if (val >= UPPERTHRESHOLD)
-        {
-          digitalWrite(TRIGGER_PIN,HIGH);
-          #ifdef LED_PIN
-            digitalWrite(LED_PIN,HIGH);
-          #endif
-          delay (50);
-          digitalWrite(TRIGGER_PIN,LOW);
-          #ifdef LED_PIN
-            digitalWrite(LED_PIN,LOW);
-          #endif
-          delay(50);
-          #ifdef DEBUG
-          Serial.print(" ");
-          Serial.print(LOWERTHRESHOLD);
-          #endif
-        }
+      {
+        digitalWrite(TRIGGER_PIN, HIGH);
+#ifdef LED_PIN
+        digitalWrite(LED_PIN, HIGH);
+#endif
+        delay (50);
+        digitalWrite(TRIGGER_PIN, LOW);
+#ifdef LED_PIN
+        digitalWrite(LED_PIN, LOW);
+#endif
+        delay(50);
+#ifdef DEBUG
+        Serial.print(" ");
+        Serial.print(LOWERTHRESHOLD);
+#endif
+      }
 
       else
-        {
-          digitalWrite(TRIGGER_PIN,LOW);
-          #ifdef LED_PIN
-            digitalWrite(LED_PIN,LOW);
-          #endif
-          #ifdef DEBUG
-          Serial.print(" ");
-          Serial.print(0);
-          #endif
-        }
-      #ifdef DEBUG
-        Serial.println();
-      #endif
+      {
+        digitalWrite(TRIGGER_PIN, LOW);
+#ifdef LED_PIN
+        digitalWrite(LED_PIN, LOW);
+#endif
+#ifdef DEBUG
+        Serial.print(" ");
+        Serial.print(0);
+#endif
+      }
+#ifdef DEBUG
+      Serial.println();
+#endif
     }
     else
-      digitalWrite(TRIGGER_PIN,LOW);
-      #ifdef LED_PIN
-        digitalWrite(LED_PIN,LOW);
-      #endif
+      digitalWrite(TRIGGER_PIN, LOW);
+#ifdef LED_PIN
+    digitalWrite(LED_PIN, LOW);
+#endif
+  }
 }
