@@ -30,7 +30,7 @@ bool dir, prevDir;
 #define TRIGGER_PIN 7
 #define SETTLE_TIME 500
 #define LED_PIN 6
-#define INVERT_Z_DIR true  //false if Z_DIR is HIGH when moving towards bed.
+#define INVERT_Z_DIR false  //false if Z_DIR is HIGH when moving towards bed.
 #define DEBUG 1 //switch serial output
 
 //-------------------------------------------------------------------------------------
